@@ -19,8 +19,8 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
-      - ./rootfs/config/crafty:/config
-      - ./rootfs/data/crafty:/data
+      - ./volumes/config/crafty:/config
+      - ./volumes/data/crafty:/data
 
 networks:
   crafty:
