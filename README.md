@@ -45,8 +45,8 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/config/crafty` - Data storage
-- `./rootfs/data/crafty` - Data storage
+- `./volumes/config/crafty` - Data storage
+- `./volumes/data/crafty` - Data storage
 
 ## 🔍 Logging
 
