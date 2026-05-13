@@ -17,20 +17,44 @@ services:
     logging: *default-logging
     networks:
       - crafty
+      - proxy
+      - cloudflare
     ports:
       - "172.17.0.1:8096:8000"
       - "172.17.0.1:8097:8443"
       - "25565:25565"
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: crafty-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     volumes:
       - ./volumes/config/crafty:/crafty/app/config
       - ./volumes/data/crafty:/crafty/servers
       - ./volumes/data/crafty/logs:/crafty/logs
       - ./volumes/data/crafty/backups:/crafty/backups
       - ./volumes/data/crafty/import:/crafty/import
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://crafty-app:8000'
+      - 'cloudflare.hostname=crafty.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.crafty-app.entrypoints=http'
+      - 'traefik.http.routers.crafty-app-secure.tls=true'
+      - 'traefik.http.routers.crafty-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.crafty-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.crafty-app.middlewares=crafty-app-https-redirect'
+      - 'traefik.http.routers.crafty-app-secure.entrypoints=https'
+      - 'traefik.http.routers.crafty-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.crafty-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.crafty-app-secure.service=crafty-app'
+      - 'traefik.http.services.crafty-app.loadbalancer.server.port=8000'
 
 networks:
   crafty:
     name: crafty
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
