@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8096
 
+name: crafty
 x-logging: &default-logging
   driver: json-file
   options:
@@ -7,21 +8,29 @@ x-logging: &default-logging
     max-file: "1"
 
 services:
-  crafty:
+  app:
     image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    pull_policy: always
     container_name: crafty-app
-    restart: unless-stopped
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
     logging: *default-logging
     networks:
       - crafty
     ports:
-      - "8096:8000"
+      - "172.17.0.1:8096:8000"
+      - "172.17.0.1:8097:8443"
+      - "25565:25565"
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
-      - ./volumes/config/crafty:/config
-      - ./volumes/data/crafty:/data
+      - ./volumes/config/crafty:/crafty/app/config
+      - ./volumes/data/crafty:/crafty/servers
+      - ./volumes/data/crafty/logs:/crafty/logs
+      - ./volumes/data/crafty/backups:/crafty/backups
+      - ./volumes/data/crafty/import:/crafty/import
 
 networks:
   crafty:
+    name: crafty
     external: false
