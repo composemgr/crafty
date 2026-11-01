@@ -1,0 +1,49 @@
+name: crafty
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: crafty-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: crafty-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    volumes:
+      - './volumes/config/crafty:/crafty/app/config:z'
+      - './volumes/data/crafty:/crafty/servers:z'
+      - './volumes/data/crafty/logs:/crafty/logs:z'
+      - './volumes/data/crafty/backups:/crafty/backups:z'
+      - './volumes/data/crafty/import:/crafty/import:z'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.crafty-app.entrypoints=http'
+      - 'traefik.http.routers.crafty-app.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.crafty-app.middlewares=crafty-app-https-redirect'
+      - 'traefik.http.middlewares.crafty-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.crafty-app-secure.entrypoints=https'
+      - 'traefik.http.routers.crafty-app-secure.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.crafty-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.crafty-app-secure.service=crafty-app'
+      - 'traefik.http.services.crafty-app.loadbalancer.server.port=8000'
+    networks:
+      - crafty
+      - traefik
+
+
+networks:
+  crafty:
+    name: crafty
+    external: false
+  traefik:
+    external: true

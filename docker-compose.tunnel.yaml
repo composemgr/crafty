@@ -1,0 +1,41 @@
+name: crafty
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: crafty-app
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: crafty-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    volumes:
+      - './volumes/config/crafty:/crafty/app/config:z'
+      - './volumes/data/crafty:/crafty/servers:z'
+      - './volumes/data/crafty/logs:/crafty/logs:z'
+      - './volumes/data/crafty/backups:/crafty/backups:z'
+      - './volumes/data/crafty/import:/crafty/import:z'
+    labels:
+      - 'cloudflare.enable=true'
+      - 'cloudflare.service=http://crafty-app:8000'
+      - 'cloudflare.hostname=${BASE_HOST_NAME:-$HOSTNAME}'
+    networks:
+      - crafty
+      - cloudflare
+
+
+networks:
+  crafty:
+    name: crafty
+    external: false
+  cloudflare:
+    external: true
