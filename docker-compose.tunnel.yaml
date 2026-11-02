@@ -18,6 +18,9 @@ services:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: crafty-app
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    ports:
+      - '19132:19132/udp'
+      - '25500-25600:25500-25600'
     volumes:
       - './volumes/config/crafty:/crafty/app/config:z'
       - './volumes/data/crafty:/crafty/servers:z'

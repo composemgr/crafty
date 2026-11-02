@@ -22,6 +22,8 @@ services:
       HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - '172.17.0.1:64148:8000'
+      - '19132:19132/udp'
+      - '25500-25600:25500-25600'
     volumes:
       - './volumes/config/crafty:/crafty/app/config:z'
       - './volumes/data/crafty:/crafty/servers:z'
